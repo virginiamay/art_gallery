@@ -7,29 +7,32 @@ import os
 
 pygame.init()
 
-# SCREEN SIZE
-screen_width = 612
-screen_height = 408
+scale = 1
+
+#SCREEN SIZE
+screen_width = 612 * scale
+screen_height = 408 * scale
 screen = pygame.display.set_mode((screen_width, screen_height))
 
-# MAIN LIST
+#MAIN LIST: room_name = total_costumes, painting_position
+#ROOMS_LIST: room_index = room_name
+
 main_list = [("green",
-              [(0, (0, 0)),
-               (0, (0, 0)),
-               (0, (0, 0))]),
+              [(2, (0.051, 0.27)),
+               (2, (0.345, 0.21)),
+               (2, (0.715, 0.27))]),
              ("gray",
-              [(1, (0.12, 0.2)),
-               (0, (0.14, 0.55)),
+              [(2, (0.12, 0.2)),
+               (2, (0.14, 0.55)),
                (2, (0.41, 0.33)),
                (2, (0.71, 0.18)),
-               (0, (0, 0))]),
-             ("pink",
-              [(0, (0, 0)),
-               (0, (0, 0)),
-               (0, (0, 0)),
-               (0, (0, 0))])]
+               (2, (0.725, 0.55))]),
+             ("red",
+              [(2, (0.12, 0.22)),
+               (2, (0.41, 0.22)),
+               (2, (0.71, 0.22))])]
 
-#ROOM NAMES FROM MAIN_LIST
+#ROOM NAMES FROM MAIN_LIST 
 rooms_list = [room_name[0] for room_name in main_list]
 
 #SET STARTING ROOM
@@ -40,11 +43,11 @@ print("ROOMS_LIST", rooms_list)
 
 #######################################################################################
 
-image_directory = "/Users/virginialynch/Documents/Python"
+image_directory = "/Users/virginialynch/Documents/Python2"
 
 #GET IMAGE PATH
-def get_image_path(image_name, image_type): 
-    return os.path.join(image_directory, (image_name + "." + image_type))
+def get_image_path(image_name): 
+    return os.path.join(image_directory, (image_name + ".png"))
 
 #GET PAINTING NAME
 def get_painting_name(room_name, painting_num, costume_num): 
@@ -54,6 +57,10 @@ def get_painting_name(room_name, painting_num, costume_num):
 def get_frame_name(room_name, painting_num): return room_name + "_" + str(painting_num)
 
 #######################################################################################
+
+#IMAGE_DICT: image_name = file_name
+#COORDS_DICT: image_name = painting_coords
+#NUM_PAINTINGS_DICT: room_name = total_paintings
 
 image_dict = {"arrow_left": "arrow_left.png",
               "arrow_right": "arrow_right.png"}
@@ -65,7 +72,7 @@ num_paintings_dict = {}
 for room_info in main_list:
     room_name, painting_info_list = room_info
 
-    image_dict[room_name] = get_image_path("room_" + room_name, "jpeg")
+    image_dict[room_name] = get_image_path("room_" + room_name)
     painting_num = 1
 
     for painting_info in painting_info_list:
@@ -73,9 +80,9 @@ for room_info in main_list:
 
         for i in range(num_costumes):
             costume_num = i + 1
-
             painting_name = get_painting_name(room_name, painting_num, costume_num)
-            image_path = get_image_path(painting_name, "png")
+
+            image_path = get_image_path(painting_name)
             image_dict[painting_name] = image_path
             coords_dict[painting_name] = (painting_position[0], painting_position[1])
 
@@ -94,7 +101,8 @@ print("NUM_PAINTINGS_DICT", num_paintings_dict)
 
 #######################################################################################
 
-#UPDATE COSTUME_NUM_DICT
+#COSTUME_NUM_DICT: frame_name = costume_num
+
 costume_num_dict = {}
 
 for image_name in image_dict:
@@ -110,6 +118,8 @@ print("COSTUME_NUM_DICT", costume_num_dict)
 
 #######################################################################################
 
+#PAINTING_SIZE_DICT: painting_name = image_name
+
 painting_size_dict = {}
 
 for image_name in image_dict:
@@ -117,8 +127,8 @@ for image_name in image_dict:
         painting_name = image_name
 
         painting_size_dict[painting_name] = (
-            int(pygame.image.load(image_dict[painting_name]).get_width()),
-            int(pygame.image.load(image_dict[painting_name]).get_height()))
+            int(pygame.image.load(image_dict[painting_name]).get_width() * scale),
+            int(pygame.image.load(image_dict[painting_name]).get_height() * scale))
 
 #######################################################################################
 
@@ -127,7 +137,7 @@ background_layer = pygame.sprite.LayeredUpdates()
 background = pygame.sprite.Sprite()
 background_layer.add(background)
 
-arrow_size = (45, 45)
+arrow_size = (45 * scale, 45 * scale)
 
 #LEFT ARROW
 arrow_left = pygame.sprite.Sprite()
@@ -148,7 +158,7 @@ arrow_right_rect = pygame.Rect(
                     arrow_size[0],
                     arrow_size[1])
 
-#INITAL ROOM AND STATUSES
+#INITAL STATUSES
 room_name = starting_room
 running = True
 update = True
@@ -158,6 +168,7 @@ update = True
 #MAIN LOOP
 while running:
     
+    #EVENTS
     for event in pygame.event.get():
 
         #CLOSE PROGRAM
@@ -208,10 +219,8 @@ while running:
                         painting_name = frame_name + "(" + str(costume_num_dict[frame_name]) + ")"
                         
                         painting_rect = pygame.Rect(
-                            coords_dict[painting_name][0],
-                            coords_dict[painting_name][1],
-                            pygame.image.load(image_dict[painting_name]).get_width(),
-                            pygame.image.load(image_dict[painting_name]).get_height(),)                        
+                            coords_dict[painting_name],
+                            painting_size_dict[painting_name])                        
                         
                         if painting_rect.collidepoint(event.pos):
                             
@@ -232,7 +241,7 @@ while running:
                                 next_costume_num = costume_num + 1
                             
                             new_painting_name = get_painting_name(room_name, painting_num, next_costume_num)
-                            image_dict[new_painting_name] = get_image_path(new_painting_name, "png")
+                            image_dict[new_painting_name] = get_image_path(new_painting_name)
                             costume_num_dict[frame_name] = next_costume_num
 
                             update = True
@@ -249,25 +258,21 @@ while running:
         screen.blit(background.image, (0, 0))
 
         #ADD PAINTINGS
-        if room_name in num_paintings_dict:
-            for frame_name in costume_num_dict:
-                painting_num = int(frame_name.split("_")[1])
-                print('image load', painting_num)
-                costume_num = costume_num_dict[frame_name]
-                painting_name = get_painting_name(room_name, painting_num, costume_num)
+        for i in range(num_paintings_dict[room_name]):
+            painting_num = i + 1
+            frame_name = get_frame_name(room_name, painting_num)
 
-                if painting_name in image_dict:
-                    image_name = pygame.image.load(image_dict[painting_name]).convert()
-                    painting = pygame.sprite.Sprite()
-                    painting.image = pygame.transform.scale(image_name, painting_size_dict[painting_name])
-                    print('painting', painting.image)
+            painting_name = get_painting_name(room_name, painting_num, costume_num_dict[frame_name])
+            
+            if painting_name in image_dict:
+                image_name = pygame.image.load(image_dict[painting_name]).convert()
+                painting = pygame.sprite.Sprite()
+                painting.image = pygame.transform.scale(image_name, painting_size_dict[painting_name])
 
-                    if painting_name in coords_dict:
-                        print('painting_name', painting_name)
-                        painting_coords = coords_dict[painting_name]
-                        print('painting coords', painting_coords)
-                        screen.blit(painting.image, painting_coords)
-        
+                if painting_name in coords_dict:
+                    painting_coords = coords_dict[painting_name]
+                    screen.blit(painting.image, painting_coords)        
+        #SHOW ARROWS
         room_index = rooms_list.index(room_name)
 
         if room_index != 0:
