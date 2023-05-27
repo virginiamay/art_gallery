@@ -4,6 +4,7 @@
 
 import pygame
 import os
+import pathlib
 
 pygame.init()
 
@@ -43,7 +44,7 @@ print("ROOMS_LIST", rooms_list)
 
 #######################################################################################
 
-image_directory = "/Users/virginialynch/Documents/Python2"
+image_directory = pathlib.Path().resolve()
 
 #GET IMAGE PATH
 def get_image_path(image_name): 
